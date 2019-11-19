@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1125,target-densityDpi=device-dpi, user-scalable=no">
+    <title>宝宝的垃圾分类</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/last.css?a=5">
+    <!-- html2canvas就是这样一款前端插件,它的原理是将Dom节点在Canvas里边画出来 -->
+    <!--    <script src="js/shipei.js"></script>-->
+    <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.1.0.js"></script>
+    <script src="js/html2canvas.min.js"></script>
+    <script src="js/jquery-2.0.0.min.js"></script>
+
+
+    <!-- 下载图片 -->
+    <script src="js/canvas2image.js"></script>
+    <style>
+        *{
+            margin:0;
+            padding:0;
+        }
+        #content{
+            width:100%;
+            height:100%;
+            position: absolute;
+            top:0;
+            bottom: 0;
+            left:0;
+            box-sizing: border-box;
+        }
+        #content .bg{
+            width:100%;
+            height:100%;
+            position: absolute;
+            top:0;
+            left:0;
+            bottom: 0;
+            z-index: -1;
+        }
+        #content .icon{
+            margin-top: 60px;
+            width: 50px;
+        }
+        #content p span{
+            color: #fff;
+        }
+        .photoPic{
+            width: 100%;
+            position: absolute;
+            top:0px;
+            left:0;
+            bottom:0;
+            background: rgba(0,0,0,.4);
+            z-index: 2;
+            transition: all 1s;
+            display: none;
+        }
+
+        .photoPic img{
+            width:100%;
+            transform: scale(1.1);
+            transition: all .2s;
+        }
+        .animate{
+            height:100%;
+            opacity: 1;
+        }
+        .animate img{
+            transform: scale(1);
+        }
+        .imgbox{
+            position: relative;
+            width:100%;
+        }
+
+        #myCanvas{
+            position: absolute;
+            top:0;left:-2000px;
+        }
+    </style>
+</head>
+<body>
+<!--<div id="box" style="">
+    <div class="last-page" id="content">
+        <img class="img" src="images/last.jpg" alt="">
+        <div class="top">
+            <div class="t-l">
+                <span class="name">三胖子</span>
+            </div>
+            <div>
+                <img class="tou" src="images/w_pic2.png" alt="">
+            </div>
+        </div>
+        <div class="num" id="scoreNum">80</div>
+        <div class="nums" id="rank">3200</div>
+    </div>
+</div>-->
+
+<canvas id="myCanvas"></canvas>
+
+<div id='photoPic' class="photoPic">
+    <div class="imgbox">
+
+        <img src="" alt="" />
+    </div>
+</div>
+
+</body>
+<script>
+    //禁止苹果的上下滑动事件
+    /*    document.body.addEventListener('touchmove', function (e) {
+            e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
+        }, {passive: false}); //passive 参数不能省略，用来兼容ios和android*/
+    let accontId=localStorage.getItem('account_id');
+    let openid=localStorage.getItem('openid');
+    let actid=localStorage.getItem('actid');
+    let url=encodeURI(window.location.href.split('#')[0]);
+    //  alert(actid)
+    //   alert(openid)
+    //  alert(accontId)
+    //alert(url)
+
+    $.ajax({
+        url:'/WinsMS/getjssdkdata',
+        type:'get',
+        data:{
+            web_auth_wechat_account_id:accontId,
+            this_view_url:url,
+        },
+        dataType:'json',
+        success:function (data) {
+            console.log(data);
+            let abc=JSON.stringify(data)
+            //alert(abc)
+            wx.config({
+                debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                appId: data.appId, // 必填，公众号的唯一标识
+                timestamp:data.timestamp, // 必填，生成签名的时间戳
+                nonceStr:data.nonceStr, // 必填，生成签名的随机串
+                signature:data.signature,// 必填，签名，见附录1
+                jsApiList: [
+                    'checkJsApi',
+                    'onMenuShareTimeline',
+                    'onMenuShareAppMessage',
+                    'closeWindow',
+                    'hideAllNonBaseMenuItem',
+                    'chooseWXPay',
+                    'WeixinJSBridgeReady'
+                ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+            });
+        }
+    });
+    wx.ready(function () {
+        //分享朋友圈
+        wx.onMenuShareTimeline({
+            title: '宝宝的24小时“垃圾分类站”', // 分享标题
+            link:'https://www.win-east.cn/WinsMS/refusesortingindex?wxid=1&code=0213pt7h2Wud0C0NR56h232K7h23pt7w&state=STATE', // 分享链接,将当前登录用户转为puid,以便于发展下线
+            imgUrl: 'https://www.win-east.cn/WinsMS/application/webapi/view/refuse_sorting/images/share.jpg', // 分享图标
+            success: function () {
+                // 用户确认分享后执行的回调函数
+                // alert('分享成功');
+                $.ajax({
+                    url:'/WinsMS/sharelog',
+                    type:'post',
+                    data:{
+                        openid:openid,
+                        actid:actid
+                    },
+                    dataType:'json',
+                    success:function (data) {
+                        console.log(data);
+                        // let abc=JSON.stringify(data)
+                        // alert(abc)
+                    }
+                });
+            },
+            cancel: function () {
+                // 用户取消分享后执行的回调函数
+            }
+        });
+        //分享朋友
+
+        wx.onMenuShareAppMessage({
+            title: '宝宝的24小时“垃圾分类站”', // 分享标题
+            desc: '最近一股神秘力量入侵了大家的生活——“垃圾分类”声势浩大的来了！', // 分享描述
+            link: 'https://www.win-east.cn/WinsMS/refusesortingindex?wxid=1&code=0213pt7h2Wud0C0NR56h232K7h23pt7w&state=STATE', // 分享链接
+            imgUrl: 'https://www.win-east.cn/WinsMS/application/webapi/view/refuse_sorting/images/share.jpg', // 分享图标
+            success: function () {
+                // 用户确认分享后执行的回调函数
+                // alert('分享成功')
+
+                $.ajax({
+                    url:'/WinsMS/sharelog',
+                    type:'post',
+                    data:{
+                        openid:openid,
+                        actid:actid
+                    },
+                    dataType:'json',
+                    success:function (data) {
+                        console.log(data)
+                        //分享成功
+                        // let abc=JSON.stringify(data)
+                        // alert(abc)
+                    }
+                });
+            },
+            cancel: function () {
+                //alert('分享取消')
+                // 用户取消分享后执行的回调函数
+            }
+        });
+        wx.error(function(res){
+            alert(JSON.stringify(res))
+            // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
+            alert("errorMSG:"+res);
+        });
+
+    });
+
+
+    window.onload=function(){
+        let href=window.location.href;
+        console.log(href);
+        let arr=href.split('?')[1];
+        let arr1=arr.split('=')[1];
+        console.log(arr1);
+        let numText;//百分比取值
+        let last_img;//称号图片
+        let numArr1=[16.12,12.58,11.47,17.62,19.87,13.99,14.28,19.09,18.15,15.66];
+        let numArr2=[25.12,21.58,22.47,26.62,28.87,24.99,25.28,27.09,20.15,23.66];
+        let numArr3=[31.12,32.58,33.47,36.62,38.87,34.99,35.28,37.09,30.15,33.66];
+        let numArr4=[46.12,42.58,41.47,47.62,49.87,43.99,44.28,49.09,48.15,45.66];
+        let numArr5=[55.12,51.58,52.47,56.62,58.87,54.99,55.28,57.09,50.15,53.66];
+        let numArr6=[61.12,62.58,63.47,66.62,68.87,64.99,65.28,67.09,60.15,63.66];
+        let numArr7=[76.12,72.58,71.47,77.62,79.87,73.99,74.28,79.09,78.15,75.66];
+        let numArr8=[85.12,81.58,82.47,86.62,88.87,84.99,85.28,87.09,80.15,83.66];
+        let numArr9=[91.12,92.58,93.47,96.62,98.87,94.99,95.28,97.09,90.15,93.66];
+        let scoreNum= localStorage.getItem('scoreNum');//把分数从缓存里拿出来
+        let rightLength= localStorage.getItem('rightLength');//把答对的个数从缓存里拿出来
+        //let rightLength=9;
+        //alert(rightLength)
+        let count= localStorage.getItem('count');//把人数从缓存里拿出来
+        let nickname= localStorage.getItem('nickname');//把昵称从缓存里拿出来
+        let headImg= localStorage.getItem('headImg');//把头像从缓存里拿出来
+        let rankNum=Number(count)+Number(arr1);//计算人数，每次加1
+        $("#scoreNum").text(scoreNum);//分数
+        $(".tou").attr('src',headImg);//头像
+        $(".name").text(nickname);//昵称
+        $("#rank").text(rankNum);//人数
+        if(rightLength==1){
+            numText=numArr1[Math.floor((Math.random()*numArr1.length))]+'%';//随机取数组里的一个值
+            last_img="images/last1.png";
+        }else if(rightLength==2){
+            numText=numArr2[Math.floor((Math.random()*numArr1.length))]+'%';//随机取数组里的一个值
+            last_img="images/last1.png";
+        }else if(rightLength==3){
+            numText=numArr3[Math.floor((Math.random()*numArr1.length))]+'%';//随机取数组里的一个值
+            last_img="images/last1.png";
+        }else if(rightLength==4){
+            numText=numArr4[Math.floor((Math.random()*numArr1.length))]+'%';//随机取数组里的一个值
+            last_img="images/last2.png";
+        }else if(rightLength==5){
+            numText=numArr5[Math.floor((Math.random()*numArr1.length))]+'%';//随机取数组里的一个值
+            last_img="images/last2.png";
+        }else if(rightLength==6){
+            numText=numArr6[Math.floor((Math.random()*numArr1.length))]+'%';//随机取数组里的一个值
+            last_img="images/last2.png";
+        }else if(rightLength==7){
+            numText=numArr7[Math.floor((Math.random()*numArr1.length))]+'%';//随机取数组里的一个值
+            last_img="images/last3.png";
+        }else if(rightLength==8){
+            numText=numArr8[Math.floor((Math.random()*numArr1.length))]+'%';//随机取数组里的一个值
+            last_img="images/last3.png";
+        }else if(rightLength==9){
+            numText=numArr9[Math.floor((Math.random()*numArr1.length))]+'%';//随机取数组里的一个值
+            last_img="images/last3.png";
+        }
+
+        console.log(numText)
+
+        //  alert(rankNum)
+        let H=2476;
+        let W=1125;
+        $("#myCanvas").attr({'height':H,'width':W});
+        let canvas=document.getElementById("myCanvas");
+        let cxt=canvas.getContext("2d");
+        let img=new Image();
+        img.setAttribute('crossOrigin', 'anonymous');
+        img.src="images/last.jpg";
+        let touImg=new Image();
+        touImg.setAttribute('crossOrigin', 'anonymous');
+        touImg.src=headImg;
+        let lastImg=new Image();//称号图片
+        touImg.setAttribute('crossOrigin', 'anonymous');
+        lastImg.src=last_img;
+
+        img.onload=function() {
+            cxt.drawImage(img, 0, 0, W, H);//绘制背景图
+            //cxt.drawImage(touImg,(W-160)/2,120,160,160);//头像
+            drawCircular(cxt,160,160,(W-160)/2,120,touImg);//圆形头像
+            cxt.drawImage(lastImg,150,960,818,74);//称号
+            cxt.font="bold 50px Arial";
+            cxt.fillStyle="#000";
+            cxt.textAlign = 'center';
+            cxt.fillText(nickname,562,370);//昵称
+            cxt.font="bold 70px Arial";
+            cxt.fillStyle="#ff6560";
+            cxt.fillText(rankNum,430,610);//人数
+            cxt.font="bold 70px Arial";
+            cxt.fillStyle="#ff6560";
+            cxt.fillText(numText,812,710);//打败人数
+            $("#photoPic").attr({'height':H,'width':W});
+            /*try {
+                // 将canvas对象转化为image/png
+                var dataUrl = canvas.toDataURL('image/png')
+                alert(dataUrl)
+            } catch (err) {
+               alert(err)
+            }*/
+            $("#photoPic img").attr("src",canvas.toDataURL());
+            $("#photoPic").show();
+            $("#photoPic").addClass("animate");
+
+
+
+        }
+        //canvas画圆函数
+        function drawCircular(ctx,width, height, x, y, url) {
+            //第一个参数：创建的画布对象
+            //第二个参数：矩形的宽
+            //第三个参数：矩形的高
+            //第四个参数：矩形左上角x轴坐标点，
+            //第五个参数：矩形左上角y轴坐标点，
+            //第六个参数：绘制的图片的URL
+            let avatarurl_width = width;
+            let avatarurl_heigth = height;
+            let avatarurl_x = x;
+            let avatarurl_y = y;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(avatarurl_width / 2 + avatarurl_x, avatarurl_heigth / 2 + avatarurl_y, avatarurl_width / 2, 0, Math.PI * 2, false);
+            ctx.clip();
+            ctx.drawImage(url, avatarurl_x, avatarurl_y, avatarurl_width, avatarurl_heigth);
+            ctx.restore();
+        }
+
+
+
+    };
+
+
+
+
+
+
+</script>
+
+</html>

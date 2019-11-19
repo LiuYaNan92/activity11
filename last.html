@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=750,target-densityDpi=device-dpi, user-scalable=no">
+    <title>last</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animate.css">
+    <script src="js/jquery-2.0.0.min.js"></script>
+    <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/preloadjs.min.js"></script>
+    <script src="js/vconsole.min.js"></script>
+    <script src="js/howler.core.js"></script>
+</head>
+<body>
+    <div class="last" style="background:#fff;">
+        <img class="bg" src="images/l_bg.png" style="display: none;" alt="">
+        <img class="bg" src="images/l_bg1.png" style="display: none;" alt="">
+        <img class="bg" src="images/l_bg2.png" style="display: none;" alt="">
+        <img class="bg" src="images/l_bg3.png" style="display: none;" alt="">
+        <img class="bg" src="images/l_bg4.png" style="display: none;" alt="">
+        <img class="bg" src="images/lv1.png" style="display: none;" alt="">
+        <img class="bg" src="images/lv2.png" style="display: none;" alt="">
+        <img class="bg" src="images/lv3.png" style="display: none;" alt="">
+        <img class="bg" src="images/lv4.png" style="display: none;" alt="">
+        <canvas id="myCanvas"></canvas>
+        <div id='photoPic' class="photoPic">
+            <div class="imgbox">
+                <img src="" alt="" />
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var vConsole=new VConsole();
+</script>
+<script>
+    window.onload=function(){
+        console.log('生成海报');
+        let clickMusic=new Howl({
+            src:['https://www.win-east.cn/WinsMS/application/webapi/view/double_eleven/music/dianji.mp3']
+        });//点击音效
+        //alert('生成海报')
+        clickMusic.currentTime=0;//音效默认从第0秒开始
+        clickMusic.play();//点击音效
+        $(".last").show();//海报页显示
+        let totalNum=localStorage.getItem('totalNum');//把分数从缓存里取出来
+        let oName=localStorage.getItem('name');//把分数从缓存里取出来
+        let W=750;
+        let H=1334;
+        let canvas=document.getElementById('myCanvas');
+        $("#myCanvas").attr({'height':H,'width':W});
+        let cxt=canvas.getContext("2d");
+        let img=new Image();//背景图片
+        img.setAttribute('crossOrigin', 'anonymous');
+        img.src="images/l_bg.png";
+        let lastImg=new Image();//称号图片
+        let numImg=new Image();//分数图片
+        lastImg.setAttribute('crossOrigin', 'anonymous');
+        numImg.setAttribute('crossOrigin', 'anonymous');
+        if(totalNum<=10){
+            lastImg.src="images/l_bg4.png";
+            numImg.src="images/lv3.png";
+        }else if(totalNum<=15){
+            lastImg.src="images/l_bg3.png";
+            numImg.src="images/lv2.png";
+        }else if(totalNum<=20){
+            lastImg.src="images/l_bg2.png";
+            numImg.src="images/lv1.png";
+        }else if(totalNum>=20){
+            lastImg.src="images/l_bg1.png";
+            numImg.src="images/lv4.png";
+        }
+        img.onload=function(){
+            cxt.drawImage(img,0, 0, W, H);//绘制背景图
+            cxt.font="bold 40px Arial";
+            cxt.fillStyle="#000";
+            cxt.textAlign = 'center';
+            cxt.fillText(oName,245,320);//昵称
+            console.log('背景加载完')
+            cxt.drawImage(numImg,470, 255, 221, 90);//绘制背景图
+            cxt.drawImage(lastImg,0, 252, 720, 797);//绘制背景图
+            // $("#photoPic").attr({'height':H,'width':W});
+            // $("#photoPic img").attr("src",canvas.toDataURL());
+            // $("#photoPic").show();
+            // $("#photoPic").addClass("animate");
+        };
+    };
+</script>
+</html>
